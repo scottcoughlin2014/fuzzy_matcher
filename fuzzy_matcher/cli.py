@@ -77,15 +77,19 @@ def cli():
 @click.option("--right-extra", multiple=True, metavar="COL",
               help="Additional right-file columns to include in output. Repeatable.")
 # Scoring
-@click.option("--scorer", default="WRatio",
-              type=click.Choice(["WRatio", "token_sort_ratio", "token_set_ratio", "partial_ratio"],
+@click.option("--scorer", default="ensemble",
+              type=click.Choice(["ensemble", "WRatio", "token_sort_ratio", "token_set_ratio", "partial_ratio"],
                                 case_sensitive=False),
-              show_default=True, help="RapidFuzz scorer to use.")
+              show_default=True,
+              help="Scorer: 'ensemble' (recommended) takes max(WRatio, partial_ratio).")
 @click.option("--threshold", default=50.0, show_default=True,
               help="Minimum fuzzy score (0-100) for a pair to be kept.")
 @click.option("--top-n", default=5, show_default=True,
               help="Maximum number of right-side matches to return per left row.")
 # Misc
+@click.option("--relax-country", is_flag=True, default=False,
+              help="For left rows with zero matches in the strict country pass, "
+                   "retry against the full right dataset. Results flagged country_match=False.")
 @click.option("--no-progress", is_flag=True, default=False,
               help="Disable the progress bar.")
 @click.option("--validate-lei", is_flag=True, default=False,
@@ -98,7 +102,7 @@ def match_cmd(
     left_name, left_country, left_lei, left_extra,
     right_name, right_country, right_lei, right_extra,
     scorer, threshold, top_n,
-    no_progress, validate_lei, verbose,
+    relax_country, no_progress, validate_lei, verbose,
 ):
     """Fuzzy-match LEFT_FILE (branch-level) against RIGHT_FILE (HQ-level).
 
@@ -123,6 +127,7 @@ def match_cmd(
         scorer=scorer,
         score_threshold=float(threshold),
         top_n=int(top_n),
+        relax_country=relax_country,
         left_extra_cols=list(left_extra),
         right_extra_cols=list(right_extra),
     )
