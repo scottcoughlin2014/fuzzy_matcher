@@ -83,8 +83,6 @@ def cli():
               show_default=True, help="RapidFuzz scorer to use.")
 @click.option("--threshold", default=50.0, show_default=True,
               help="Minimum fuzzy score (0-100) for a pair to be kept.")
-@click.option("--lei-bonus", default=15.0, show_default=True,
-              help="Score bonus when LEIs match between a pair.")
 @click.option("--top-n", default=5, show_default=True,
               help="Maximum number of right-side matches to return per left row.")
 # Misc
@@ -99,7 +97,7 @@ def match_cmd(
     output, fmt,
     left_name, left_country, left_lei, left_extra,
     right_name, right_country, right_lei, right_extra,
-    scorer, threshold, lei_bonus, top_n,
+    scorer, threshold, top_n,
     no_progress, validate_lei, verbose,
 ):
     """Fuzzy-match LEFT_FILE (branch-level) against RIGHT_FILE (HQ-level).
@@ -124,7 +122,6 @@ def match_cmd(
         right_lei_col=right_lei,
         scorer=scorer,
         score_threshold=float(threshold),
-        lei_bonus=float(lei_bonus),
         top_n=int(top_n),
         left_extra_cols=list(left_extra),
         right_extra_cols=list(right_extra),

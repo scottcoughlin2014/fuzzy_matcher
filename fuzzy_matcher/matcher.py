@@ -36,7 +36,6 @@ class MatchConfig:
 
     # Matching thresholds
     score_threshold: float = 50.0   # minimum fuzzy score to keep a candidate (0-100)
-    lei_bonus: float = 15.0         # points added when LEIs overlap
     top_n: int = 5                  # max matches returned per left row
 
     # Scorer: one of "WRatio", "token_sort_ratio", "token_set_ratio", "partial_ratio"
@@ -154,23 +153,17 @@ class FuzzyMatcher:
 
         right_names_norm = candidates[cfg.right_name_col].fillna("").apply(normalize).tolist()
 
-        # --- fuzzy scoring ---
+        # --- fuzzy scoring (name only) ---
         scores = rfprocess.cdist(
             [left_name_norm],
             right_names_norm,
             scorer=self._scorer,
             processor=None,   # already normalised
-            score_cutoff=max(0.0, self.cfg.score_threshold - self.cfg.lei_bonus),
+            score_cutoff=self.cfg.score_threshold,
         )[0]  # shape: (len(right_names_norm),)
 
-        # --- LEI bonus ---
+        # --- pre-compute LEI sets for lei_match flag in output ---
         left_leis = parse_lei_set(left_row.get(cfg.left_lei_col))
-        if left_leis:
-            right_leis_series = candidates[cfg.right_lei_col].fillna("")
-            for idx, right_lei_raw in enumerate(right_leis_series):
-                right_leis = parse_lei_set(right_lei_raw)
-                if left_leis & right_leis:
-                    scores[idx] = min(100.0, scores[idx] + cfg.lei_bonus)
 
         # --- filter and sort ---
         above_threshold = [
