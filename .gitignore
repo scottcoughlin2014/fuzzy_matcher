@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+wheels/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Editable install
+*.egg-link
+pip-wheel-metadata/
+
+# Distribution / packaging
+MANIFEST
+.installed.cfg
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Testing
+.tox/
+.nox/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# MyPy / type checking
+.mypy_cache/
+.dmypy.json
+.pytype/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (large / sensitive)
+*.parquet
+*.csv
+*.xlsx
+*.feather
+*.arrow
+
+# Output / scratch
+results/
+output/
+tmp/
