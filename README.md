@@ -369,8 +369,6 @@ fuzzy-match match \
   --format csv \
   -o results/matches.csv \
   --validate-lei \
-  --right-extra SP_ENTITY_ID \
-  --right-extra SNL_TOTAL_ASSETS_FY2024
 ```
 
 ### `fuzzy-match schema`
