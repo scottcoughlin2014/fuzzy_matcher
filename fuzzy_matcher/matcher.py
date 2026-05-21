@@ -163,8 +163,42 @@ class FuzzyMatcher:
             return []
 
         right_names_norm = candidates[cfg.right_name_col].fillna("").apply(normalize).tolist()
-        scores = self._score(left_name_norm, right_names_norm)
+        return self._score_and_build(
+            left_row, left_name_raw, left_name_norm,
+            candidates, right_names_norm, country_matched,
+        )
 
+    def _match_row_cached(
+        self,
+        left_row: pd.Series,
+        candidates: pd.DataFrame,   # must have a '_norm_name' column already populated
+        country_matched: bool,
+    ) -> list[dict]:
+        """Like _match_row but reuses pre-normalised '_norm_name' column to avoid
+        re-normalising 2.5M strings for every relaxed-pass row."""
+        left_name_raw = left_row.get(self.cfg.left_name_col, "")
+        left_name_norm = normalize(str(left_name_raw) if pd.notna(left_name_raw) else "")
+        if not left_name_norm:
+            return []
+
+        right_names_norm = candidates["_norm_name"].tolist()
+        return self._score_and_build(
+            left_row, left_name_raw, left_name_norm,
+            candidates, right_names_norm, country_matched,
+        )
+
+    def _score_and_build(
+        self,
+        left_row: pd.Series,
+        left_name_raw,
+        left_name_norm: str,
+        candidates: pd.DataFrame,
+        right_names_norm: list[str],
+        country_matched: bool,
+    ) -> list[dict]:
+        """Core: score left name against right_names_norm and build result records."""
+        cfg = self.cfg
+        scores = self._score(left_name_norm, right_names_norm)
         left_leis = parse_lei_set(left_row.get(cfg.left_lei_col))
 
         above = [(float(scores[i]), i) for i in range(len(scores)) if scores[i] >= cfg.score_threshold]
@@ -246,6 +280,12 @@ class FuzzyMatcher:
                 "Relaxed-country pass: retrying %d unmatched left rows against full right dataset…",
                 len(relaxed_rows),
             )
+            # Pre-normalise all right names once and cache on the DataFrame to
+            # avoid repeating the 2.5M-row normalisation for every relaxed row.
+            logger.info("Pre-normalising all right-side names (one-time cost)…")
+            right["_norm_name"] = right[self.cfg.right_name_col].fillna("").apply(normalize)
+            right_cached = right  # single object, no copy
+
             relax_iter = relaxed_rows
             if progress:
                 try:
@@ -255,7 +295,7 @@ class FuzzyMatcher:
                     pass
 
             for row in relax_iter:
-                row_results = self._match_row(row, right, country_matched=False)
+                row_results = self._match_row_cached(row, right_cached, country_matched=False)
                 all_results.extend(row_results)
 
         if not all_results:

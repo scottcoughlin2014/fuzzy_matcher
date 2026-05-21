@@ -107,8 +107,9 @@ def match_cmd(
     """Fuzzy-match LEFT_FILE (branch-level) against RIGHT_FILE (HQ-level).
 
     Both files may be .parquet, .csv, or any format readable by DuckDB.
-    Matching is scoped by country first, then name similarity is scored
-    with RapidFuzz. Pairs where LEIs agree receive a score bonus.
+    Matching is first scoped by country, then name similarity is scored
+    with RapidFuzz on normalised strings. LEI columns are used only as a
+    diagnostic signal (lei_match flag) and do not influence the score.
 
     \b
     Example:
